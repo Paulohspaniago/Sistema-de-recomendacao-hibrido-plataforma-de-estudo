@@ -2,6 +2,7 @@ import unittest
 import pandas as pd
 from recomendador import Recomendador
 from avaliar import avaliar_notas
+from predicao_notas import PreditorVieses
 
 
 class TestRecomendador(unittest.TestCase):
@@ -41,11 +42,19 @@ class TestRecomendador(unittest.TestCase):
         self.assertEqual(len(resultado['_grupo_conteudo']), resultado['_grupo_conteudo'].nunique())
 
     def test_baseline_notas_usa_somente_media_do_treino(self):
-        dados = pd.DataFrame({'data': pd.to_datetime(['2023-01-01'] * 4 + ['2023-12-01']),
+        dados = pd.DataFrame({'data': pd.to_datetime(['2023-01-01'] * 4 + ['2023-12-01']), 'id_aluno': [1, 1, 2, 2, 3],
                               'id_material': [1, 1, 1, 1, 2], 'avaliacao': [4., 4., 4., 4., 1.]})
         resultados, _ = avaliar_notas(dados)
         self.assertAlmostEqual(resultados.loc[0, 'rmse'], 3.0)
         self.assertAlmostEqual(resultados.loc[1, 'rmse'], 3.0)
+
+    def test_preditor_personaliza_e_tem_fallback_para_desconhecidos(self):
+        treino = pd.DataFrame({'id_aluno': [1, 1, 2, 2], 'id_material': [1, 2, 1, 2], 'avaliacao': [5., 5., 1., 1.]})
+        modelo = PreditorVieses().fit(treino)
+        pares = pd.DataFrame({'id_aluno': [1, 2, 999], 'id_material': [1, 1, 999]})
+        notas = modelo.predict(pares)
+        self.assertGreater(notas[0], notas[1])
+        self.assertAlmostEqual(notas[2], 3.0)
 
 
 if __name__ == '__main__':

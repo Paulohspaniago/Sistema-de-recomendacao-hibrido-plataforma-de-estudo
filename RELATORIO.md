@@ -30,6 +30,10 @@ Os valores de relevância são muito baixos. As diferenças de cobertura e diver
 
 Usando o mesmo corte temporal e as 40.588 avaliações válidas do teste, a média global do treino obteve RMSE **1,410032** e MAE **1,195691**. A média por material regularizada com 10 observações equivalentes à média global obteve RMSE **1,426248** e MAE **1,229349**. Materiais desconhecidos no treino recebem a média global. Esses são baselines independentes, não previsões de notas do modelo híbrido.
 
+### Predição de notas personalizada
+
+Um terceiro modelo prevê a nota como média global do treino mais um desvio regularizado do aluno e um desvio regularizado do material. Ele estima os desvios alternadamente por dez iterações, com regularização 10 para ambos, sem usar dados futuros. Alunos e materiais não observados recebem desvio zero; previsões são limitadas ao intervalo de notas observado no treino. No mesmo conjunto temporal de 40.588 avaliações, obteve **RMSE 1,442213** e **MAE 1,244474**, pior que os dois baselines. Os hiperparâmetros são iniciais, sem ajuste em validação separada. É uma previsão personalizada independente e não representa uma nota prevista pelo híbrido de ranking.
+
 ### Avaliação alternativa por conteúdo equivalente
 
 Agrupamos materiais com valores exatamente iguais de título, tipo, área, nível, descrição e autor. O agrupamento não prova que itens distintos sejam realmente a mesma edição ou recurso; é uma aproximação adequada para investigar as repetições observadas. No treino, qualquer interação marca o grupo como visto. No teste, um grupo é relevante se tiver alguma avaliação ≥ 4. São elegíveis alunos com histórico de treino e ao menos um grupo relevante ainda não visto: **2.663 alunos**, dos quais 1.000 foram sorteados com semente 42. Esta amostra difere da amostra da avaliação por ID.
@@ -56,7 +60,7 @@ A cobertura de grupos foi 1,0 para todos os métodos; a diversidade de área de 
 - Colaborativo usa comportamento real registrado, mas fica limitado pela baixa quantidade de interações válidas e pelo problema de novos alunos e itens.
 - Regras de conhecimento são interpretáveis, porém simplificam a relação entre período, disciplina e dificuldade.
 - Pesos híbridos são iniciais e não foram ajustados em validação separada.
-- O híbrido ranqueia itens e não prevê notas; os valores de RMSE são de baselines independentes. CTR, engajamento e satisfação não foram medidos.
+- O híbrido ranqueia itens e não prevê notas; os valores de RMSE são de modelos independentes. CTR, engajamento e satisfação não foram medidos.
 
 ## Melhorias
 

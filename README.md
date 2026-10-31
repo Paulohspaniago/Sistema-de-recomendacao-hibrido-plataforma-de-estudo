@@ -62,11 +62,13 @@ O protótipo combina os escores normalizados com pesos de 40% para conteúdo, 40
 
 A avaliação offline deverá usar um protocolo de treino e teste documentado, preferencialmente respeitando as datas das interações para evitar acesso a informações futuras. A definição de relevância, os valores de K e os modelos de referência serão registrados com os resultados.
 
-As métricas online dependem de uma aplicação instrumentada e de usuários ou testes específicos; ainda não foram medidas. O ranking híbrido não prevê notas; RMSE é calculado apenas para dois baselines de predição de notas.
+As métricas online dependem de uma aplicação instrumentada e de usuários ou testes específicos; ainda não foram medidas. O ranking híbrido não prevê notas; RMSE é calculado separadamente para dois baselines e um preditor de notas personalizado.
 
 ### Primeira avaliação offline
 
 Na execução local com `--usuarios 1000 --k 10`, a divisão temporal usou 19/10/2023 como início do teste, considerou relevantes notas ≥ 4 e excluiu IDs de itens já vistos no treino. A amostra foi escolhida com semente 42. O híbrido obteve **Precision@10 de 0,0002** e **Recall@10 de 0,000667**: resultados baixos, limitados por dados esparsos e metadados repetidos. Os baselines de notas obtiveram RMSE de 1,4100 (média global) e 1,4262 (média regularizada por material); não são previsões do híbrido. Veja o protocolo e os demais resultados em [RELATORIO.md](RELATORIO.md).
+
+Um preditor separado com efeitos de aluno e material obteve RMSE de **1,4422**, pior do que a média global nesse teste. O resultado mostra a necessidade de investigar os dados e validar outras abordagens, sem presumir que a personalização trará melhora.
 
 Uma segunda avaliação agrupa conteúdos com os mesmos metadados e recomenda apenas grupos inéditos. Há somente dez grupos distintos: em Top-10 todos os grupos novos cabem na lista, fazendo os métodos terem o mesmo recall de 1,0. Isso é uma consequência do protocolo, não prova de qualidade do ranking.
 
@@ -96,7 +98,8 @@ python -m unittest discover -s tests -v
 - [x] Protótipo com instruções de execução.
 - [x] Descrição da arquitetura e comparação inicial das abordagens.
 - [x] Baselines de previsão de notas com RMSE e MAE.
-- [ ] Preditor de notas personalizado; validação ampliada e melhorias.
+- [x] Preditor de notas personalizado com efeitos de aluno e material.
+- [ ] Validação ampliada, análise de significância e melhorias dos modelos.
 - [x] Interface local de demonstração.
 - [ ] Capturas de tela reais da demonstração neste README.
 

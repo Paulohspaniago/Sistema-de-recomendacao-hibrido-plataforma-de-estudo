@@ -4,10 +4,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from recomendador import Recomendador, carregar_dados
+from predicao_notas import PreditorVieses
 
 
 def avaliar_notas(interacoes):
-    """Avalia baselines de média global e média regularizada por material no futuro."""
+    """Avalia dois baselines e um preditor personalizado em dados futuros."""
     corte = interacoes.data.quantile(0.8)
     treino = interacoes[interacoes.data < corte]
     teste = interacoes[interacoes.data >= corte]
@@ -20,7 +21,9 @@ def avaliar_notas(interacoes):
     previsao_item = teste.id_material.map(estimativas).fillna(media)
     verdade = teste.avaliacao.to_numpy(dtype=float)
     resultados = []
-    for nome, previsao in [('media_global', np.full(len(teste), media)), ('media_item_regularizada', previsao_item.to_numpy())]:
+    preditor = PreditorVieses().fit(treino)
+    previsao_personalizada = preditor.predict(teste)
+    for nome, previsao in [('media_global', np.full(len(teste), media)), ('media_item_regularizada', previsao_item.to_numpy()), ('vies_aluno_material', previsao_personalizada)]:
         erro = verdade - previsao
         resultados.append({'modelo': nome, 'rmse': float(np.sqrt(np.mean(erro ** 2))), 'mae': float(np.mean(np.abs(erro))), 'n_teste': len(teste)})
     return pd.DataFrame(resultados), corte
@@ -86,6 +89,6 @@ if __name__ == '__main__':
     Path('outputs').mkdir(exist_ok=True)
     resultado.to_csv('outputs/metricas_conteudo.csv' if args.por_conteudo else 'outputs/metricas.csv', index=False)
     notas, _ = avaliar_notas(interacoes)
-    print('\nBaselines de previsão de notas:')
+    print('\nModelos de previsão de notas:')
     print(notas.to_string(index=False))
     notas.to_csv('outputs/metricas_notas.csv', index=False)
