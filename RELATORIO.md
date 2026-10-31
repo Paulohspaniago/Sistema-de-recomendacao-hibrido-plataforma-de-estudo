@@ -59,9 +59,35 @@ A cobertura de grupos foi 1,0 para todos os métodos; a diversidade de área de 
 - Conteúdo permite tratar itens novos quando há metadados; sua descrição textual pode ser insuficiente e concentrar resultados em uma área.
 - Colaborativo usa comportamento real registrado, mas fica limitado pela baixa quantidade de interações válidas e pelo problema de novos alunos e itens.
 - Regras de conhecimento são interpretáveis, porém simplificam a relação entre período, disciplina e dificuldade.
-- Pesos híbridos são iniciais e não foram ajustados em validação separada.
+- A interface mantém os pesos iniciais de 0,4/0,4/0,2; os pesos ajustados foram avaliados separadamente e ainda não demonstraram melhora estatística.
 - O híbrido ranqueia itens e não prevê notas; os valores de RMSE são de modelos independentes. CTR, engajamento e satisfação não foram medidos.
 
 ## Melhorias
 
-Investigar e corrigir IDs incompatíveis na origem; verificar duplicatas e coerência temporal; ampliar a amostra e calcular intervalos de confiança; ajustar pesos em conjunto de validação separado; testar fatoração e um preditor de avaliações para RMSE; definir regras pedagógicas com especialistas; medir cobertura por grupos e instrumentar eventos online com consentimento.
+Investigar os IDs incompatíveis na origem; verificar duplicatas e coerência temporal; testar fatoração e outros preditores de notas; definir regras pedagógicas com especialistas; avaliar em dados mais completos e diversos; e instrumentar eventos online com consentimento. Como o teste atual já foi examinado, futuros ajustes precisam de um novo conjunto de teste independente.
+
+## Ajuste temporal e incerteza
+
+Para um experimento posterior, dividimos as 200.622 interações válidas cronologicamente, por datas inteiras: treino até 06/08/2023 (120.150), validação de 07/08 a 18/10/2023 (39.884) e teste a partir de 19/10/2023 (40.588). Alunos elegíveis têm histórico anterior e pelo menos um conteúdo equivalente relevante (nota ≥ 4) novo no período avaliado. Dos 3.623 elegíveis na validação e 2.663 no teste, foram sorteados 1.000 em cada período com semente 42; as populações não precisam ser as mesmas.
+
+Na validação, uma grade de 21 combinações de pesos não negativos em passos de 0,2 e soma 1 foi avaliada por Precision@1. O empate é resolvido pela ordem decrescente dos pesos de conteúdo, colaborativo e conhecimento. Os melhores pesos foram **0,0 / 0,4 / 0,6**, com Precision@1 de 0,408 na validação. Após essa escolha, o modelo foi reajustado com treino e validação juntos e avaliado no teste, sem selecionar novamente os pesos. As regras de relevância e equivalência são as descritas na seção anterior.
+
+| Modelo no teste | Precision@1 | IC 95% bootstrap por aluno |
+| --- | ---: | ---: |
+| Híbrido ajustado | 0,520 | [0,488; 0,549] |
+| Híbrido inicial (0,4 / 0,4 / 0,2) | 0,512 | [0,482; 0,541] |
+| Conteúdo | 0,525 | [0,495; 0,553] |
+| Colaborativo | 0,488 | [0,457; 0,518] |
+| Conhecimento | 0,537 | [0,506; 0,567] |
+
+Os intervalos usam 2.000 reamostragens com reposição dos alunos avaliados, semente 42 e percentis 2,5% e 97,5%. A diferença pareada ajustado menos inicial foi **0,008**, com intervalo **[-0,015; 0,030]**. Como o intervalo inclui zero, este experimento não fornece evidência suficiente de melhoria. O bootstrap pressupõe alunos aproximadamente independentes; perfis repetidos, dados excluídos e seleção de apenas alunos elegíveis limitam a generalização. O teste já foi examinado e não deve ser reutilizado como conjunto intocado para novos ajustes. Reproduza com `python validacao_temporal.py --dados data --usuarios 1000`.
+
+## Plano de métricas online — ainda não medido
+
+Uma implantação futura precisaria gerar eventos com identificadores pseudonimizados de usuário, sessão, recomendação, item, posição e versão do modelo, além de data/hora e tipo de evento. Devem ser registrados somente itens efetivamente exibidos na tela, com os cliques associados à exposição correspondente; eventos repetidos e sessão expirada devem ser tratados por regras previamente definidas.
+
+- **CTR:** número de exposições de itens que receberam ao menos um clique dividido pelo número total de exposições elegíveis, na mesma janela de análise. Também convém acompanhar usuários que clicaram ao menos uma vez, para evitar confundir as unidades.
+- **Engajamento:** tempo ativo em segundos após abrir um material recomendado, excluindo períodos inativos segundo limiar definido antes da análise. Reportar mediana, distribuição e quantidade de sessões, não apenas média.
+- **Satisfação:** pesquisa opcional após interação, por exemplo escala de 1 a 5 para utilidade, informando número de respostas, taxa de resposta e distribuição; participantes podem ser enviesados em relação a quem não responde.
+
+Para comparar modelos, seria necessário definir população e período, distribuição aleatória e estável por aluno, métrica principal, limites de segurança e análise antes de iniciar um teste A/B. Eventos devem respeitar consentimento aplicável, minimização e prazo de retenção definido pela instituição. O protótipo atual não coleta esses eventos nem realiza pesquisa, e nenhum valor online foi medido.

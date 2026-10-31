@@ -72,6 +72,8 @@ Um preditor separado com efeitos de aluno e material obteve RMSE de **1,4422**, 
 
 Uma segunda avaliação agrupa conteúdos com os mesmos metadados e recomenda apenas grupos inéditos. Há somente dez grupos distintos: em Top-10 todos os grupos novos cabem na lista, fazendo os métodos terem o mesmo recall de 1,0. Isso é uma consequência do protocolo, não prova de qualidade do ranking.
 
+Em um experimento com treino, validação e teste separados por data, os pesos ajustados na validação obtiveram Precision@1 de 0,520 no teste, comparado a 0,512 com os pesos iniciais. O intervalo bootstrap pareado da diferença foi [-0,015; 0,030], incluindo zero: não há evidência suficiente de melhora. A interface mantém os pesos iniciais. O relatório também descreve um plano para medir CTR, engajamento e satisfação; são métricas propostas, não resultados observados.
+
 ## ▶️ Executar localmente
 
 Requer Python 3.10 ou superior e os três CSVs originais em `data/`, com seus nomes originais. No diretório do projeto:
@@ -90,6 +92,7 @@ Para avaliação e testes:
 ```bash
 python avaliar.py --dados data --usuarios 100 --k 10
 python avaliar.py --dados data --usuarios 1000 --k 10 --por-conteudo
+python validacao_temporal.py --dados data --usuarios 1000
 python -m unittest discover -s tests -v
 ```
 
@@ -99,7 +102,8 @@ python -m unittest discover -s tests -v
 - [x] Descrição da arquitetura e comparação inicial das abordagens.
 - [x] Baselines de previsão de notas com RMSE e MAE.
 - [x] Preditor de notas personalizado com efeitos de aluno e material.
-- [ ] Validação ampliada, análise de significância e melhorias dos modelos.
+- [x] Ajuste em validação temporal separada e intervalos de confiança no teste.
+- [ ] Melhorias dos modelos e avaliação em uma base mais completa e diversa.
 - [x] Interface local de demonstração.
 - [ ] Capturas de tela reais da demonstração neste README.
 

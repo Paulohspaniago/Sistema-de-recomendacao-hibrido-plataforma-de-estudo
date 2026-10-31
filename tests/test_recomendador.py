@@ -3,6 +3,8 @@ import pandas as pd
 from recomendador import Recomendador
 from avaliar import avaliar_notas
 from predicao_notas import PreditorVieses
+from validacao_temporal import acertos, divisao_temporal, intervalo_bootstrap
+import numpy as np
 
 
 class TestRecomendador(unittest.TestCase):
@@ -55,6 +57,19 @@ class TestRecomendador(unittest.TestCase):
         notas = modelo.predict(pares)
         self.assertGreater(notas[0], notas[1])
         self.assertAlmostEqual(notas[2], 3.0)
+
+    def test_divisao_temporal_nao_mistura_datas(self):
+        dados = pd.DataFrame({'data': pd.to_datetime(['2023-01-01', '2023-02-01', '2023-03-01', '2023-04-01', '2023-05-01'])})
+        treino, validacao, teste, _, _ = divisao_temporal(dados)
+        self.assertLess(treino.data.max(), validacao.data.min())
+        self.assertLess(validacao.data.max(), teste.data.min())
+
+    def test_avaliacao_top1_usa_pesos_e_desempate(self):
+        exemplos = [(np.array([[1., 0., 0.], [0., 1., 0.]]), np.array([9, 2]), np.array([0, 1]), {1})]
+        self.assertEqual(acertos(exemplos, (1, 0, 0)).tolist(), [0.])
+        self.assertEqual(acertos(exemplos, (0, 1, 0)).tolist(), [1.])
+        self.assertEqual(acertos(exemplos, (0, 0, 1)).tolist(), [1.])
+        self.assertEqual(intervalo_bootstrap(np.ones(4), repeticoes=10), [1., 1.])
 
 
 if __name__ == '__main__':
