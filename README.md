@@ -1,6 +1,6 @@
 # 📚 Recomendação híbrida para uma plataforma de ensino
 
-> Projeto acadêmico em desenvolvimento para recomendar materiais didáticos a estudantes do ensino superior, considerando seu perfil e suas interações com a plataforma.
+> Protótipo acadêmico para recomendar materiais didáticos a estudantes do ensino superior, considerando seu perfil e suas interações com a plataforma.
 
 ## 🎯 Objetivo
 
@@ -24,7 +24,7 @@ O sistema deverá:
 | `materiais_didaticos.csv` | Identificador, título, tipo, área, nível, descrição e autor | 10.000 registros |
 | `interacoes.csv` | Identificadores do aluno e do material, tipo de interação, avaliação, duração e data | 10.000.000 registros |
 
-Os CSVs foram fornecidos para o projeto e ainda não estão incluídos neste repositório. As contagens acima correspondem às linhas dos arquivos originais; integridade, duplicidades e correspondência entre identificadores ainda serão verificadas.
+Os CSVs foram fornecidos para o projeto e não estão incluídos neste repositório. Dos 10 milhões de registros de interações, apenas **200.622 (2,01%)** possuem simultaneamente identificadores de aluno e material presentes nos respectivos cadastros. Apenas esses registros são usados pelo protótipo.
 
 > O arquivo de interações tem aproximadamente 445 MiB. A estratégia para armazená-lo e disponibilizá-lo deverá ser definida antes de adicioná-lo ao GitHub. Dados de estudantes devem ser tratados com cuidado: nomes não são necessários para treinar os modelos.
 
@@ -46,7 +46,7 @@ Usar **curso, período, disciplinas cursadas e áreas de interesse** como indíc
 
 ### 4. Modelo híbrido
 
-Combinar os resultados das três abordagens em um ranking. Pesos, normalização, tratamento de alunos ou materiais novos e justificativas serão definidos e comparados experimentalmente.
+O protótipo combina os escores normalizados com pesos de 40% para conteúdo, 40% para colaborativo e 20% para conhecimento. Estes pesos são escolhas iniciais, não otimizadas. Itens já acessados pelo aluno são removidos do ranking.
 
 ## 📊 Avaliação planejada
 
@@ -62,15 +62,38 @@ Combinar os resultados das três abordagens em um ranking. Pesos, normalização
 
 A avaliação offline deverá usar um protocolo de treino e teste documentado, preferencialmente respeitando as datas das interações para evitar acesso a informações futuras. A definição de relevância, os valores de K e os modelos de referência serão registrados com os resultados.
 
-As métricas online dependem de uma aplicação instrumentada e de usuários ou testes específicos. **Nenhum resultado online ou offline foi medido ainda.**
+As métricas online dependem de uma aplicação instrumentada e de usuários ou testes específicos; ainda não foram medidas. O protótipo atual não prevê notas, de modo que RMSE também permanece pendente.
+
+### Primeira avaliação offline
+
+Na execução local com `--usuarios 100 --k 10`, a divisão temporal usou 19/10/2023 como início do teste, considerou relevantes notas ≥ 4 e excluiu itens já vistos no treino. A amostra de alunos foi escolhida com semente 42. Os cinco métodos obtiveram **Precision@10, Recall@10 e F1@10 iguais a zero** nessa amostra. Isso não comprova eficácia; exige investigação e avaliações adicionais. Detalhes e resultados completos estão em [RELATORIO.md](RELATORIO.md).
+
+## ▶️ Executar localmente
+
+Requer Python 3.10 ou superior e os três CSVs originais em `data/`, com seus nomes originais. No diretório do projeto:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+streamlit run app.py
+```
+
+O navegador abrirá a demonstração. A primeira leitura percorre os 10 milhões de interações e pode levar algum tempo. Alternativamente, defina `DADOS_DIR` com o caminho da pasta dos CSVs.
+
+Para avaliação e testes:
+
+```bash
+python avaliar.py --dados data --usuarios 100 --k 10
+python -m unittest discover -s tests -v
+```
 
 ## 📝 Relatório e entregáveis
 
-- [ ] Código-fonte completo e instruções de execução.
-- [ ] Descrição da arquitetura e das decisões de modelagem.
-- [ ] Comparação das métricas entre abordagens e baselines.
-- [ ] Análise de pontos fortes, limitações e melhorias.
-- [ ] Demonstração funcional do sistema.
+- [x] Protótipo com instruções de execução.
+- [x] Descrição da arquitetura e comparação inicial das abordagens.
+- [ ] Previsão de notas e avaliação RMSE; validação ampliada e melhorias.
+- [x] Interface local de demonstração.
 - [ ] Capturas de tela reais da demonstração neste README.
 
 ## 📖 Referência conceitual
