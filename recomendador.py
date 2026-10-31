@@ -1,5 +1,4 @@
 """Recomendação educacional: conteúdo, conhecimento e coocorrência colaborativa."""
-from collections import Counter, defaultdict
 from pathlib import Path
 import re
 import unicodedata
@@ -36,6 +35,11 @@ class Recomendador:
     def __init__(self, alunos, materiais, interacoes):
         self.alunos = alunos.set_index('id_aluno', drop=False)
         self.materiais = materiais.reset_index(drop=True).copy()
+        colunas_grupo = ['titulo', 'tipo', 'area', 'nivel', 'descricao', 'autor']
+        self.materiais['_grupo_conteudo'] = pd.factorize(pd.MultiIndex.from_frame(
+            self.materiais[colunas_grupo].fillna('').astype(str)
+        ))[0]
+        self.grupo_por_id = dict(zip(self.materiais.id_material, self.materiais['_grupo_conteudo']))
         self.interacoes = interacoes.copy()
         self.item_pos = {int(v): i for i, v in enumerate(self.materiais.id_material)}
         self.user_ids = sorted(self.alunos.index.tolist())
@@ -82,7 +86,7 @@ class Recomendador:
         conhecimento += 0.3 * (self.niveis_normalizados == esperado)
         return {'popularidade': self.escala(self.popularidade), 'conteudo': self.escala(conteudo), 'colaborativo': self.escala(colaborativo), 'conhecimento': self.escala(conhecimento)}
 
-    def recomendar(self, aluno_id, metodo='hibrido', k=10, scores=None):
+    def recomendar(self, aluno_id, metodo='hibrido', k=10, scores=None, conteudos_unicos=False):
         if k < 1:
             raise ValueError('k deve ser positivo.')
         scores = self.scores(aluno_id) if scores is None else scores
@@ -95,4 +99,9 @@ class Recomendador:
         resultado = self.materiais.copy()
         resultado['score'] = score
         resultado = resultado[~resultado.id_material.isin(self.historico.get(aluno_id, set()))]
-        return resultado.sort_values(['score', 'id_material'], ascending=[False, True]).head(k)
+        resultado = resultado.sort_values(['score', 'id_material'], ascending=[False, True])
+        if conteudos_unicos:
+            vistos = {self.grupo_por_id[i] for i in self.historico.get(aluno_id, set())}
+            resultado = resultado[~resultado['_grupo_conteudo'].isin(vistos)]
+            resultado = resultado.drop_duplicates('_grupo_conteudo')
+        return resultado.head(k)

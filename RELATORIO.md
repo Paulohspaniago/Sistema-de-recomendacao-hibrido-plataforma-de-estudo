@@ -30,6 +30,26 @@ Os valores de relevância são muito baixos. As diferenças de cobertura e diver
 
 Usando o mesmo corte temporal e as 40.588 avaliações válidas do teste, a média global do treino obteve RMSE **1,410032** e MAE **1,195691**. A média por material regularizada com 10 observações equivalentes à média global obteve RMSE **1,426248** e MAE **1,229349**. Materiais desconhecidos no treino recebem a média global. Esses são baselines independentes, não previsões de notas do modelo híbrido.
 
+### Avaliação alternativa por conteúdo equivalente
+
+Agrupamos materiais com valores exatamente iguais de título, tipo, área, nível, descrição e autor. O agrupamento não prova que itens distintos sejam realmente a mesma edição ou recurso; é uma aproximação adequada para investigar as repetições observadas. No treino, qualquer interação marca o grupo como visto. No teste, um grupo é relevante se tiver alguma avaliação ≥ 4. São elegíveis alunos com histórico de treino e ao menos um grupo relevante ainda não visto: **2.663 alunos**, dos quais 1.000 foram sorteados com semente 42. Esta amostra difere da amostra da avaliação por ID.
+
+Cada lista exclui grupos já vistos e contém no máximo um item por grupo. Para todos os cinco métodos, Precision@10 foi **0,1149**, Recall@10 **1,0000**, F1@10 **0,204044**, diversidade por área **0,829652**, cobertura de grupos **1,0** e tamanho médio de lista **2,733**. Precision mantém denominador 10 mesmo em listas menores.
+
+Esses números não demonstram que os modelos ordenam bem: há apenas dez grupos no catálogo, e todos os grupos inéditos cabem na lista de até dez. Consequentemente, todos os métodos retornam o mesmo conjunto de grupos elegíveis e o recall é necessariamente 1 nessa configuração. As duas avaliações respondem perguntas diferentes e usam populações e catálogos diferentes; seus números não devem ser comparados como melhoria direta. Um catálogo mais variado ou métricas sensíveis à ordem com K menor seriam necessários para comparar ranking. Reproduza com `python avaliar.py --dados data --usuarios 1000 --k 10 --por-conteudo`.
+
+Com a mesma amostra e **K = 1**, a escolha do primeiro grupo altera os resultados:
+
+| Método | Precision@1 | Recall@1 | F1@1 |
+| --- | ---: | ---: | ---: |
+| Popularidade | 0,489 | 0,441500 | 0,456667 |
+| Conteúdo | 0,525 | 0,475833 | 0,491500 |
+| Colaborativo | 0,488 | 0,440667 | 0,455833 |
+| Conhecimento | 0,537 | 0,485667 | 0,502000 |
+| Híbrido | 0,512 | 0,464833 | 0,479833 |
+
+A cobertura de grupos foi 1,0 para todos os métodos; a diversidade de área de uma lista unitária é definida aqui como zero. São diferenças descritivas, sem intervalos de confiança nem teste de significância, obtidas numa população selecionada e com apenas dez grupos de conteúdo. Não é possível concluir superioridade estatística. Reproduza com `python avaliar.py --dados data --usuarios 1000 --k 1 --por-conteudo`.
+
 ## Pontos fortes e limitações
 
 - Conteúdo permite tratar itens novos quando há metadados; sua descrição textual pode ser insuficiente e concentrar resultados em uma área.

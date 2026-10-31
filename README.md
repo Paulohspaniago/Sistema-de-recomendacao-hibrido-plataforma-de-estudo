@@ -68,6 +68,8 @@ As métricas online dependem de uma aplicação instrumentada e de usuários ou 
 
 Na execução local com `--usuarios 1000 --k 10`, a divisão temporal usou 19/10/2023 como início do teste, considerou relevantes notas ≥ 4 e excluiu IDs de itens já vistos no treino. A amostra foi escolhida com semente 42. O híbrido obteve **Precision@10 de 0,0002** e **Recall@10 de 0,000667**: resultados baixos, limitados por dados esparsos e metadados repetidos. Os baselines de notas obtiveram RMSE de 1,4100 (média global) e 1,4262 (média regularizada por material); não são previsões do híbrido. Veja o protocolo e os demais resultados em [RELATORIO.md](RELATORIO.md).
 
+Uma segunda avaliação agrupa conteúdos com os mesmos metadados e recomenda apenas grupos inéditos. Há somente dez grupos distintos: em Top-10 todos os grupos novos cabem na lista, fazendo os métodos terem o mesmo recall de 1,0. Isso é uma consequência do protocolo, não prova de qualidade do ranking.
+
 ## ▶️ Executar localmente
 
 Requer Python 3.10 ou superior e os três CSVs originais em `data/`, com seus nomes originais. No diretório do projeto:
@@ -85,6 +87,7 @@ Para avaliação e testes:
 
 ```bash
 python avaliar.py --dados data --usuarios 100 --k 10
+python avaliar.py --dados data --usuarios 1000 --k 10 --por-conteudo
 python -m unittest discover -s tests -v
 ```
 

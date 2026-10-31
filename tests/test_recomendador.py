@@ -15,6 +15,7 @@ class TestRecomendador(unittest.TestCase):
             dict(id_material=2, titulo='Inteligência artificial', area='IA', nivel='Iniciante', descricao='Aprendizado de máquina', tipo='artigo'),
             dict(id_material=3, titulo='Gestão', area='Gestão', nivel='Avançado', descricao='Gestão empresarial', tipo='livro'),
         ])
+        materiais['autor'] = 'Autor'
         interacoes = pd.DataFrame([dict(id_aluno=1, id_material=1, avaliacao=5), dict(id_aluno=2, id_material=1, avaliacao=5), dict(id_aluno=2, id_material=2, avaliacao=5)])
         self.modelo = Recomendador(alunos, materiais, interacoes)
 
@@ -29,6 +30,15 @@ class TestRecomendador(unittest.TestCase):
 
     def test_hibrido_limite(self):
         self.assertEqual(len(self.modelo.recomendar(1, 'hibrido', 1)), 1)
+
+    def test_conteudo_unico_remove_copia_de_item_visto(self):
+        copia = self.modelo.materiais.drop(columns='_grupo_conteudo').iloc[[0]].copy()
+        copia['id_material'] = 4
+        materiais = pd.concat([self.modelo.materiais.drop(columns='_grupo_conteudo'), copia], ignore_index=True)
+        modelo = Recomendador(self.modelo.alunos.reset_index(drop=True), materiais, self.modelo.interacoes)
+        resultado = modelo.recomendar(1, 'hibrido', 10, conteudos_unicos=True)
+        self.assertNotIn(4, resultado.id_material.tolist())
+        self.assertEqual(len(resultado['_grupo_conteudo']), resultado['_grupo_conteudo'].nunique())
 
     def test_baseline_notas_usa_somente_media_do_treino(self):
         dados = pd.DataFrame({'data': pd.to_datetime(['2023-01-01'] * 4 + ['2023-12-01']),

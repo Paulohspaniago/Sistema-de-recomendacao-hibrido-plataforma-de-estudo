@@ -33,7 +33,12 @@ st.sidebar.caption(f'{len(interacoes):,} de {total:,} interações com referênc
 metodos = {'Híbrido': 'hibrido', 'Conteúdo': 'conteudo', 'Colaborativo': 'colaborativo', 'Conhecimento': 'conhecimento', 'Popularidade': 'popularidade'}
 selecao = st.selectbox('Abordagem', list(metodos))
 k = st.slider('Quantidade de materiais', 1, 20, 10)
-recomendacoes = modelo.recomendar(int(aluno_id), metodos[selecao], k)
+unicos = st.checkbox('Mostrar apenas conteúdos distintos ainda não vistos', value=True)
+recomendacoes = modelo.recomendar(int(aluno_id), metodos[selecao], k, conteudos_unicos=unicos)
 st.subheader(f'Recomendações para {aluno["nome"]}')
+if recomendacoes.empty:
+    st.info('Não encontramos conteúdos novos para este estudante na base disponível.')
+elif len(recomendacoes) < k:
+    st.info(f'A base contém apenas {len(recomendacoes)} conteúdos inéditos para este estudante.')
 st.dataframe(recomendacoes[['titulo', 'tipo', 'area', 'nivel', 'autor', 'score']], hide_index=True, use_container_width=True)
 st.caption('As regras de conhecimento são aproximações; não representam pré-requisitos oficiais. As recomendações usam apenas interações com aluno e material cadastrados.')
