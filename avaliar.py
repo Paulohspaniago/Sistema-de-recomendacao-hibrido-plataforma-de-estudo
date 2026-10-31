@@ -6,6 +6,26 @@ import pandas as pd
 from recomendador import Recomendador, carregar_dados
 
 
+def avaliar_notas(interacoes):
+    """Avalia baselines de média global e média regularizada por material no futuro."""
+    corte = interacoes.data.quantile(0.8)
+    treino = interacoes[interacoes.data < corte]
+    teste = interacoes[interacoes.data >= corte]
+    if treino.empty or teste.empty:
+        raise ValueError('A divisão temporal precisa conter treino e teste.')
+    media = float(treino.avaliacao.mean())
+    estatisticas = treino.groupby('id_material').avaliacao.agg(['mean', 'count'])
+    regularizacao = 10
+    estimativas = (estatisticas['count'] * estatisticas['mean'] + regularizacao * media) / (estatisticas['count'] + regularizacao)
+    previsao_item = teste.id_material.map(estimativas).fillna(media)
+    verdade = teste.avaliacao.to_numpy(dtype=float)
+    resultados = []
+    for nome, previsao in [('media_global', np.full(len(teste), media)), ('media_item_regularizada', previsao_item.to_numpy())]:
+        erro = verdade - previsao
+        resultados.append({'modelo': nome, 'rmse': float(np.sqrt(np.mean(erro ** 2))), 'mae': float(np.mean(np.abs(erro))), 'n_teste': len(teste)})
+    return pd.DataFrame(resultados), corte
+
+
 def avaliar(alunos, materiais, interacoes, k=10, usuarios=100):
     corte = interacoes.data.quantile(0.8)
     treino = interacoes[interacoes.data < corte].copy()
@@ -25,8 +45,9 @@ def avaliar(alunos, materiais, interacoes, k=10, usuarios=100):
     catalogo = {m: set() for m in metodos}
     for pos in escolhidos:
         usuario, verdade = elegiveis[pos]
+        scores = modelo.scores(usuario)
         for metodo in metodos:
-            rec = modelo.recomendar(usuario, metodo, k)
+            rec = modelo.recomendar(usuario, metodo, k, scores=scores)
             ids = set(rec.id_material)
             acertos = len(ids & verdade)
             precisao = acertos / k
@@ -56,3 +77,7 @@ if __name__ == '__main__':
     print(resultado.to_string(index=False))
     Path('outputs').mkdir(exist_ok=True)
     resultado.to_csv('outputs/metricas.csv', index=False)
+    notas, _ = avaliar_notas(interacoes)
+    print('\nBaselines de previsão de notas:')
+    print(notas.to_string(index=False))
+    notas.to_csv('outputs/metricas_notas.csv', index=False)

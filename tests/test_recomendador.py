@@ -1,6 +1,7 @@
 import unittest
 import pandas as pd
 from recomendador import Recomendador
+from avaliar import avaliar_notas
 
 
 class TestRecomendador(unittest.TestCase):
@@ -28,6 +29,13 @@ class TestRecomendador(unittest.TestCase):
 
     def test_hibrido_limite(self):
         self.assertEqual(len(self.modelo.recomendar(1, 'hibrido', 1)), 1)
+
+    def test_baseline_notas_usa_somente_media_do_treino(self):
+        dados = pd.DataFrame({'data': pd.to_datetime(['2023-01-01'] * 4 + ['2023-12-01']),
+                              'id_material': [1, 1, 1, 1, 2], 'avaliacao': [4., 4., 4., 4., 1.]})
+        resultados, _ = avaliar_notas(dados)
+        self.assertAlmostEqual(resultados.loc[0, 'rmse'], 3.0)
+        self.assertAlmostEqual(resultados.loc[1, 'rmse'], 3.0)
 
 
 if __name__ == '__main__':

@@ -62,11 +62,11 @@ O protótipo combina os escores normalizados com pesos de 40% para conteúdo, 40
 
 A avaliação offline deverá usar um protocolo de treino e teste documentado, preferencialmente respeitando as datas das interações para evitar acesso a informações futuras. A definição de relevância, os valores de K e os modelos de referência serão registrados com os resultados.
 
-As métricas online dependem de uma aplicação instrumentada e de usuários ou testes específicos; ainda não foram medidas. O protótipo atual não prevê notas, de modo que RMSE também permanece pendente.
+As métricas online dependem de uma aplicação instrumentada e de usuários ou testes específicos; ainda não foram medidas. O ranking híbrido não prevê notas; RMSE é calculado apenas para dois baselines de predição de notas.
 
 ### Primeira avaliação offline
 
-Na execução local com `--usuarios 100 --k 10`, a divisão temporal usou 19/10/2023 como início do teste, considerou relevantes notas ≥ 4 e excluiu itens já vistos no treino. A amostra de alunos foi escolhida com semente 42. Os cinco métodos obtiveram **Precision@10, Recall@10 e F1@10 iguais a zero** nessa amostra. Isso não comprova eficácia; exige investigação e avaliações adicionais. Detalhes e resultados completos estão em [RELATORIO.md](RELATORIO.md).
+Na execução local com `--usuarios 1000 --k 10`, a divisão temporal usou 19/10/2023 como início do teste, considerou relevantes notas ≥ 4 e excluiu IDs de itens já vistos no treino. A amostra foi escolhida com semente 42. O híbrido obteve **Precision@10 de 0,0002** e **Recall@10 de 0,000667**: resultados baixos, limitados por dados esparsos e metadados repetidos. Os baselines de notas obtiveram RMSE de 1,4100 (média global) e 1,4262 (média regularizada por material); não são previsões do híbrido. Veja o protocolo e os demais resultados em [RELATORIO.md](RELATORIO.md).
 
 ## ▶️ Executar localmente
 
@@ -92,7 +92,8 @@ python -m unittest discover -s tests -v
 
 - [x] Protótipo com instruções de execução.
 - [x] Descrição da arquitetura e comparação inicial das abordagens.
-- [ ] Previsão de notas e avaliação RMSE; validação ampliada e melhorias.
+- [x] Baselines de previsão de notas com RMSE e MAE.
+- [ ] Preditor de notas personalizado; validação ampliada e melhorias.
 - [x] Interface local de demonstração.
 - [ ] Capturas de tela reais da demonstração neste README.
 

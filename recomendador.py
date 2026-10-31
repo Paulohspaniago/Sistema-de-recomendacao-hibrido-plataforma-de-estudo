@@ -43,6 +43,9 @@ class Recomendador:
         textos = self.materiais[['titulo', 'area', 'nivel', 'descricao', 'tipo']].fillna('').astype(str).agg(' '.join, axis=1).map(normalizar)
         self.vectorizer = TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True)
         self.item_vectors = self.vectorizer.fit_transform(textos)
+        self.areas_normalizadas = self.materiais.area.map(normalizar).to_numpy()
+        self.niveis_normalizados = self.materiais.nivel.map(normalizar).to_numpy()
+        self.palavras_por_area = {area: set(re.findall(r'\w+', area)) for area in set(self.areas_normalizadas)}
         inter = self.interacoes
         self.historico = inter.groupby('id_aluno')['id_material'].agg(set).to_dict()
         positivos = inter[inter.avaliacao >= 4].drop_duplicates(['id_aluno', 'id_material'])
@@ -74,16 +77,15 @@ class Recomendador:
         palavras = set(re.findall(r'\w+', perfil))
         nivel = pd.to_numeric(pd.Series([aluno['periodo']]), errors='coerce').fillna(1).iloc[0]
         esperado = 'iniciante' if nivel <= 3 else 'intermediario' if nivel <= 6 else 'avancado'
-        conhecimento = np.array([
-            float(bool(set(re.findall(r'\w+', normalizar(area))) & palavras)) + 0.3 * (normalizar(niv) == esperado)
-            for area, niv in zip(self.materiais.area, self.materiais.nivel)
-        ])
+        areas_relevantes = {area for area, tokens in self.palavras_por_area.items() if tokens & palavras}
+        conhecimento = np.isin(self.areas_normalizadas, list(areas_relevantes)).astype(float)
+        conhecimento += 0.3 * (self.niveis_normalizados == esperado)
         return {'popularidade': self.escala(self.popularidade), 'conteudo': self.escala(conteudo), 'colaborativo': self.escala(colaborativo), 'conhecimento': self.escala(conhecimento)}
 
-    def recomendar(self, aluno_id, metodo='hibrido', k=10):
+    def recomendar(self, aluno_id, metodo='hibrido', k=10, scores=None):
         if k < 1:
             raise ValueError('k deve ser positivo.')
-        scores = self.scores(aluno_id)
+        scores = self.scores(aluno_id) if scores is None else scores
         if metodo == 'hibrido':
             score = 0.4 * scores['conteudo'] + 0.4 * scores['colaborativo'] + 0.2 * scores['conhecimento']
         elif metodo in scores:
