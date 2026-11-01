@@ -105,7 +105,7 @@ python -m unittest discover -s tests -v
 - [x] Ajuste em validação temporal separada e intervalos de confiança no teste.
 - [ ] Melhorias dos modelos e avaliação em uma base mais completa e diversa.
 - [x] Interface local de demonstração.
-- [ ] Capturas de tela reais da demonstração neste README.
+- [x] Capturas de tela reais da demonstração neste README.
 
 ## 📖 Referência conceitual
 
@@ -115,4 +115,22 @@ O material apresenta, entre outros temas, filtragem baseada em conteúdo, filtra
 
 ## 🖥️ Demonstração
 
-As capturas serão adicionadas aqui após a aplicação estar funcionando. A proposta é mostrar o passo a passo: seleção do estudante, visualização de seu perfil, recomendações e resultados de avaliação. As imagens deverão representar execuções reais do sistema.
+As imagens mostram exemplos reais de uso da interface com os dados fornecidos. A quantidade de recomendações disponíveis depende dos conteúdos distintos que cada estudante ainda não acessou.
+
+### 1. Seleção do estudante e recomendação híbrida
+
+O estudante é selecionado na barra lateral. Com a abordagem híbrida, o sistema combina conteúdo, comportamento colaborativo e regras de conhecimento para ordenar os materiais.
+
+![Seleção da estudante Maria Souza e recomendações pela abordagem híbrida](docs/imagens/maria-souza-hibrido.png)
+
+### 2. Comparação por popularidade
+
+Para a mesma estudante, a abordagem de popularidade apresenta outra ordenação dos materiais. O menu mostra as cinco opções disponíveis na interface.
+
+![Perfil de Maria Souza e recomendações pela abordagem de popularidade](docs/imagens/maria-souza-popularidade.png)
+
+### 3. Filtragem colaborativa para outro perfil
+
+Ao selecionar Pedro Costa e a abordagem colaborativa, a interface exibe seu perfil acadêmico e o conteúdo inédito disponível para recomendação.
+
+![Perfil de Pedro Costa e recomendação pela abordagem colaborativa](docs/imagens/pedro-costa-colaborativo.png)
